@@ -96,9 +96,10 @@ One-time script `scripts/export-sanity.ts`:
 
 - Engine: oneko.js chase logic (cursor following, state machine) adapted into a
   self-contained `MiniDogan.astro` component — trivially removable.
-- Sprite sheet: custom pixel-art character of the user, drawn using a
-  user-provided face photo as reference (image path TBD — user will supply it;
-  this is the only open input, not an open design question).
+- Sprite sheet: custom pixel-art character of the user, drawn using the
+  user-provided face photo as reference
+  (`docs/superpowers/specs/assets/mascot-face-reference.webp` — curly dark
+  hair, round glasses, gray cap, dark blue shirt).
 - Frames: 8-direction run cycles, idle, and sleep poses — matching the
   behavioral completeness of the original cat sprite.
 
