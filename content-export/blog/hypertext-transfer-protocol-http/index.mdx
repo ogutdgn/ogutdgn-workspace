@@ -1,0 +1,103 @@
+---
+title: "Hypertext Transfer Protocol (HTTP)"
+description: "In this blog i have talked about what is http, and core features of http."
+date: 2026-01-13
+---
+
+**Everytime you open a webpage, your browser and server are having a conversation, HTTP is the language of that conversation. **
+
+In a more technical way, HTTP is a request-response protocol between client and server. 
+
+
+
+Client -> Web Browser, Mobile application etc.
+
+Server -> Computer or a program that create responses for the requests (this might be the most basic definition of server :D)
+
+HTTP -> The rules of the conversation. You can think HTTP like a language. 
+
+
+
+#### What is HTTP Request?
+
+HTTP Request is a message from client to server saying 'I WANT THIS!'.
+
+it includes: HTTP Method, URL, Header, Body
+
+
+
+- HTTP Method: What do I want to do? (GET, POST, etc.)
+  - GET: requesting an information
+  - POST: sending an information
+  - PUT: sending an information to update an existing information
+  - DELETE: deleting an information
+- URL: Where? 
+- Header: Meta Information (who, which format, authentication token, etc.)
+
+```json title="example http request header"
+Content-Type: application/json
+Authorization: Bearer abc123
+User-Agent: Chrome/120
+```
+
+- Body: The data being sent (optional. since you don't need to send some data all the time, for example why would you send data while you are requesting a data :D)
+
+```json title="example http request body"
+  { 
+    "email": "user@myapp.com",
+    "password": "123456"       
+  }  
+```
+
+
+
+#### What is HTTP Response?
+
+HTTP Response is the answer that the server gave to request. 
+
+it includes: Status, Header, Body
+
+- Status
+  - Status are expresses as a code, so we can also say status code. The code numbers are not random, they are grouped.
+    - 2xx -> success codes
+    - 3xx -> redirection
+    - 4xx -> client error
+    - 5xx -> server error
+
+``` title="example http response status codes"
+200 - OK: Request succeeded
+201 - Created: Resource was successfully created
+301 - Moved Permanently: Resource has moved to a new URL
+400 - Bad Request: The request is malformed or missing data
+401 - Unauthorized: Not logged in — authentication required
+403 - Forbidden: Logged in but no permission to access this
+404 - Not Found: The resource doesn't exist
+422 - Unprocessable Entity: Data format is correct but content is invalid
+500 - Internal Server Error: Something went wrong on the server
+```
+
+- Header: Meta information about the response (content type, caching rules, cookies, etc.)
+
+``` title="example http response header"
+HTTP/1.1 200 OK
+Content-Type: application/json
+```
+
+- Body: The actual data returned by the server (HTML, JSON, image, etc.)
+
+``` title="example http response body"
+{
+    "user": "john",
+    "email": "john@myapp.com
+}
+```
+
+
+
+
+
+An important thing about HTTP is that, it is stateless. This means the server does not remember previous requests. Every request starts fresh, the server has no memory of who you are or what you did before. 
+
+
+
+This is why things like cookies and tokens exist, but this is another topic that i will cover in future blogs.

@@ -1,0 +1,121 @@
+---
+title: "Fetching Data from Websites RSS(Really Simple Syndication)/Atom"
+description: "A beginner-friendly introduction to RSS and Atom feeds, explaining how they work and why they are useful for automatically fetching and tracking website content."
+date: 2026-02-12
+---
+
+# What Are RSS and Atom? Understanding How Feeds Work
+
+Every day, thousands of new pieces of content are published on the internet. But instead of visiting a website every day to check “is there a new post?”, did you know you can follow new content automatically?
+
+That is where **RSS** and **Atom** come in.
+
+#### What Is a Feed?
+
+A feed is a special data stream that presents a website’s published content in a **machine-readable format**.
+
+It is usually in XML format, and you can often find it at URLs like:
+
+```xml title="urls"
+site.com/feed
+site.com/rss
+site.com/atom.xml
+```
+
+
+
+
+When you open these URLs in your browser, you will not see a normal web page. Instead, you will see structured data in XML format.
+
+#### What Is RSS?
+
+**RSS (Really Simple Syndication)** is a format that lets you automatically follow new content on websites.
+
+It is commonly used by:
+
+- Blogs
+- News websites
+- Podcast publishers
+- Content platforms
+
+#### What Is Inside an RSS Feed?
+
+In an RSS entry (an *item*), you will typically see fields like:
+
+- **title** → The content title
+- **link** → The content URL
+- **description** → A short summary
+- **pubDate** → Publication date
+- **author** → Author information
+- **category** → Category or tag
+- **enclosure** → A file (for example, a podcast mp3)
+
+Example RSS item structure:
+
+```xml title="example-rss"
+<item>
+	<title>What is RSS?</title>
+	<link><https://site.com/what-is-rss></link>
+	<description>Basic information about RSS</description>
+	<pubDate>Mon, 12 Feb 2026 10:00:00 GMT</pubDate>
+</item>
+
+```
+
+#### What Is Atom?
+
+**Atom** is an alternative feed format developed as a more standardized and structured option compared to RSS.
+
+Compared to RSS, Atom is generally:
+
+- More strict about standards
+- Clearer about time formats
+- More consistent in data structure
+
+In Atom, instead of *item*, the term *entry* is used:
+
+```xml title="example-atom"
+<entry>
+	<title>What is Atom?</title>
+	<link href="<https://site.com/what-is-atom>"/>
+	<updated>2026-02-12T10:00:00Z</updated>
+	<summary>Information about the Atom format</summary>
+</entry>
+```
+
+
+
+
+### Differences Between RSS and Atom
+
+Feature RSS Atom Release year Older Newer Standard structure More flexible More strict Adoption Very common Less common, but more modern XML format Yes Yes
+
+In general, on WordPress sites, the `/feed` path produces an RSS feed.
+
+#### Why Are Feeds Important?
+
+RSS and Atom let you fetch data without needing an API key.
+
+This enables things like:
+
+- Automatically tracking new content
+- Building newsletter systems
+- Creating bots
+- Aggregating content
+- Setting up automation workflows
+
+A feed URL is essentially a website’s content stream exposed to the outside world.
+
+#### Next Step: Fetching Data from a Feed
+
+In this post, we learned what RSS and Atom are and how they are structured.
+
+In the next post, I will walk through, step by step:
+
+- How to fetch data from an RSS feed URL
+- How to automatically read a feed with GitHub Actions
+- How to store feed data
+
+Now we know the theory.
+
+Next up is putting it into practice.
