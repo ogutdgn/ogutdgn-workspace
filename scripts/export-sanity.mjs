@@ -82,7 +82,7 @@ async function exportDoc(doc, kind, extraFrontmatter) {
   let body = md;
   for (const job of imageJobs) {
     const localPath = await downloadImage(job.ref, dir, job.basename);
-    body = body.replace(`(${job.localRef})`, `(${localPath})`);
+    body = body.replaceAll(`(${job.localRef})`, `(${localPath})`);
   }
 
   const fm = frontmatter({
