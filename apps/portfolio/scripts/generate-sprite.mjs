@@ -74,11 +74,10 @@ const BODY_WAVE = [
   "__PP____PP__",
   "__KK____KK__",
 ];
-const OVERLAY_EXCLAIM = ["W", "W", "_", "W"]; // 1x4
 const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"]; // 3x4
 
 // Validation: every grid must have equal-length rows.
-const GRIDS = { BODY_STAND, BODY_RUN_A, BODY_RUN_B, BODY_WAVE, OVERLAY_EXCLAIM, OVERLAY_Z };
+const GRIDS = { BODY_STAND, BODY_RUN_A, BODY_RUN_B, BODY_WAVE, OVERLAY_Z };
 for (const [name, grid] of Object.entries(GRIDS)) {
   const w = grid[0].length;
   grid.forEach((row, i) => {
@@ -113,14 +112,13 @@ function drawGrid(buf, grid, x0, y0, { mirror = false, scale = 2 } = {}) {
 // Body is 24px wide (12*2), centered in the 56px cell; sits in the lower half.
 const BODY_W = 24;
 const BODY_X = Math.round((CELL - BODY_W) / 2); // 16
-const BODY_Y = 30; // leaves the top ~30px for the head photo
+const BODY_Y = 35; // pushed down so the full head (incl. chin/jaw) shows above the shirt
 
 // Head-composite jobs collected here, applied via sharp after the body layer.
 const headJobs = []; // { col, row, mirror, bob }
 
 function place(col, row, { bodyGrid = null, mirrorBody = false, bob = 0, headMirror = false, overlay = null } = {}) {
   if (bodyGrid) drawGrid(body, bodyGrid, col * CELL + BODY_X, row * CELL + BODY_Y + bob, { mirror: mirrorBody });
-  if (overlay === "!") drawGrid(body, OVERLAY_EXCLAIM, col * CELL + 44, row * CELL + 6);
   if (overlay === "Z") drawGrid(body, OVERLAY_Z, col * CELL + 40, row * CELL + 2);
   headJobs.push({ col, row, mirror: headMirror, bob });
 }
@@ -134,7 +132,7 @@ function placeSleeping(col, row, zOffset) {
 // --- Cell map (identical coordinates to oneko.gif) -------------------------
 // idle / alert / tired
 place(3, 3, { bodyGrid: BODY_STAND });
-place(7, 3, { bodyGrid: BODY_STAND, overlay: "!" });
+place(7, 3, { bodyGrid: BODY_STAND });
 place(3, 2, { bodyGrid: BODY_STAND, overlay: "Z" });
 // sleeping (2 frames)
 placeSleeping(2, 0, 0);
@@ -174,13 +172,13 @@ place(6, 1, { bodyGrid: BODY_RUN_B, mirrorBody: true, bob: 1, headMirror: true }
 // ---------------------------------------------------------------------------
 // Prepare the real-face head (normal + mirrored) and composite into each cell.
 // ---------------------------------------------------------------------------
-const HEAD_H = 30; // px tall in the cell
+const HEAD_H = 34; // px tall in the cell
 
 // Trim transparent margin, crop to the head (drop shoulders), resize.
 const trimmed = await sharp(FACE_SRC).trim().toBuffer({ resolveWithObject: true });
 const tw = trimmed.info.width;
 const th = trimmed.info.height;
-const headCropH = Math.round(th * 0.72); // cap-top to collar
+const headCropH = Math.round(th * 0.82); // cap-top through chin/jaw (more of the lower face)
 const headBuf = await sharp(trimmed.data)
   .extract({ left: 0, top: 0, width: tw, height: headCropH })
   .resize({ height: HEAD_H })
