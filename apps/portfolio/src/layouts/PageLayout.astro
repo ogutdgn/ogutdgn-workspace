@@ -2,6 +2,7 @@
 import Head from "@components/Head.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
+import MiniDogan from "@components/MiniDogan.astro";
 import { SITE } from "@consts";
 import Analytics from "@vercel/analytics/astro";
 
@@ -23,6 +24,7 @@ const { title, description } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <MiniDogan />
     <Analytics />
   </body>
 </html>
