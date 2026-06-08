@@ -31,48 +31,51 @@ const PALETTE = {
 };
 
 const BODY_STAND = [
-  "__BBBBBBBB__",
-  "_BBBBBBBBBB_",
-  "_BbBBBBBBbB_",
-  "_BbBBBBBBbB_",
-  "_SbBBBBBBbS_",
-  "__PPPPPPPP__",
-  "__PP____PP__",
-  "__PP____PP__",
-  "__KK____KK__",
+  "____BBBBBB____",
+  "__BBBBBBBBBB__",
+  "_BBBBBBBBBBBB_",
+  "_BbBBBBBBBBbB_",
+  "_BbBBBBBBBBbB_",
+  "_SbBBBBBBBBbS_",
+  "__PPPPPPPPPP__",
+  "__PPP____PPP__",
+  "__PPP____PPP__",
+  "__KKK____KKK__",
 ];
 const BODY_RUN_A = [
-  "__BBBBBBBB__",
-  "_BBBBBBBBBB_",
-  "_BbBBBBBBbB_",
-  "_SbBBBBBBbB_",
-  "__BBBBBBBbS_",
-  "__PPPPPPPP__",
-  "_PP______PP_",
-  "_PP______PP_",
-  "_KK______KK_",
+  "____BBBBBB____",
+  "__BBBBBBBBBB__",
+  "_BBBBBBBBBBBB_",
+  "_SbBBBBBBBBbB_",
+  "__BBBBBBBBBbS_",
+  "__PPPPPPPPPP__",
+  "_PPP______PPP_",
+  "_PP________PP_",
+  "_KK________KK_",
+  "______________",
 ];
 const BODY_RUN_B = [
-  "__BBBBBBBB__",
-  "_BBBBBBBBBB_",
-  "_BbBBBBBBbB_",
-  "_BbBBBBBBbS_",
-  "_SbBBBBBBB__",
-  "__PPPPPPPP__",
-  "___PP__PP___",
-  "___PP__PP___",
-  "___KK__KK___",
+  "____BBBBBB____",
+  "__BBBBBBBBBB__",
+  "_BBBBBBBBBBBB_",
+  "_BbBBBBBBBBbS_",
+  "__BBBBBBBBBB__",
+  "__PPPPPPPPPP__",
+  "____PPPPPP____",
+  "____PPPPPP____",
+  "____KKKKKK____",
+  "______________",
 ];
 const BODY_WAVE = [
-  "__BBBBBBBBS_",
-  "_BBBBBBBBBb_",
-  "_BbBBBBBBbB_",
-  "_BbBBBBBBB__",
-  "_SbBBBBBBB__",
-  "__PPPPPPPP__",
-  "__PP____PP__",
-  "__PP____PP__",
-  "__KK____KK__",
+  "____BBBBBB__S_",
+  "__BBBBBBBBBBb_",
+  "_BBBBBBBBBBBB_",
+  "_BbBBBBBBBBB__",
+  "_SbBBBBBBBB___",
+  "__PPPPPPPPPP__",
+  "__PPP____PPP__",
+  "__PPP____PPP__",
+  "__KKK____KKK__",
 ];
 const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"]; // 3x4
 
@@ -110,8 +113,8 @@ function drawGrid(buf, grid, x0, y0, { mirror = false, scale = 2 } = {}) {
 }
 
 // Body is 24px wide (12*2), centered in the 56px cell; sits in the lower half.
-const BODY_W = 24;
-const BODY_X = Math.round((CELL - BODY_W) / 2); // 16
+const BODY_W = 28;
+const BODY_X = Math.round((CELL - BODY_W) / 2); // 14
 const BODY_Y = 35; // pushed down so the full head (incl. chin/jaw) shows above the shirt
 
 // Head-composite jobs collected here, applied via sharp after the body layer.

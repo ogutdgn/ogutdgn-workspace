@@ -95,25 +95,33 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
     function idle() {
       idleTime += 1;
 
-      if (idleTime > 10 && Math.floor(Math.random() * 200) == 0 && idleAnimation == null) {
-        let availableIdleAnimations = ["sleeping", "scratchSelf"];
+      // After a short pause, occasionally do a little idle animation. The mascot
+      // jumps (no sleeping), or waves/stretches toward a nearby wall.
+      if (idleTime > 6 && Math.floor(Math.random() * 40) == 0 && idleAnimation == null) {
+        let availableIdleAnimations = ["jump", "jump", "jump", "scratchSelf"];
         if (nekoPosX < cellSize) availableIdleAnimations.push("scratchWallW");
         if (nekoPosY < cellSize) availableIdleAnimations.push("scratchWallN");
         if (nekoPosX > window.innerWidth - cellSize) availableIdleAnimations.push("scratchWallE");
         if (nekoPosY > window.innerHeight - cellSize) availableIdleAnimations.push("scratchWallS");
-        
+
         idleAnimation = availableIdleAnimations[Math.floor(Math.random() * availableIdleAnimations.length)];
       }
 
       switch (idleAnimation) {
-        case "sleeping":
-          if (idleAnimationFrame < 8) {
-            setSprite("tired", 0);
-            break;
+        case "jump": {
+          // Two parabolic hops; offset the element's top to fake the jump.
+          const hopFrames = 11;
+          const hops = 2;
+          const t = idleAnimationFrame % hopFrames;
+          const offset = Math.round(Math.sin((t / (hopFrames - 1)) * Math.PI) * 18);
+          setSprite("idle", 0);
+          nekoEl.style.top = `${nekoPosY - half - offset}px`;
+          if (idleAnimationFrame >= hopFrames * hops - 1) {
+            nekoEl.style.top = `${nekoPosY - half}px`;
+            resetIdleAnimation();
           }
-          setSprite("sleeping", Math.floor(idleAnimationFrame / 4));
-          if (idleAnimationFrame > 192) resetIdleAnimation();
           break;
+        }
         case "scratchWallN":
         case "scratchWallS":
         case "scratchWallE":
