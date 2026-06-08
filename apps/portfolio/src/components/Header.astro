@@ -76,12 +76,14 @@ import { SITE, TOOLS_URL } from "@consts";
     document.documentElement.classList.toggle('dark', prefersDark);
     updateIcon(prefersDark);
 
-    // Toggle theme
-    themeToggle.addEventListener('click', () => {
+    // Toggle theme. Use the onclick property (not addEventListener) so that
+    // re-running this setup on astro:page-load replaces the handler instead of
+    // stacking a second one — two handlers would toggle twice and cancel out.
+    themeToggle.onclick = () => {
       const isDark = document.documentElement.classList.toggle('dark');
       updateIcon(isDark);
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
+    };
 
     // Check for saved preference
     const savedTheme = localStorage.getItem('theme');
