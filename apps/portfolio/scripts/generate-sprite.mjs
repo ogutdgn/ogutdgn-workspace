@@ -1,146 +1,70 @@
 // apps/portfolio/scripts/generate-sprite.mjs
-// Generates public/mini-dogan.png (256x128, 8x4 cells of 32px) — same cell
-// layout as oneko.gif so the chase engine's sprite map is unchanged.
+// Generates public/mini-dogan.png — a cursor-chasing mascot sprite sheet that
+// composites Dogan's REAL face photo (the head) onto an animated pixel body.
+//
+// Sheet: 8 cols x 4 rows of 56px cells (448x224). The cell COORDINATES match
+// oneko.gif exactly so the chase engine's sprite map works unchanged; only the
+// cell SIZE is scaled up (32 -> 56) so the real face is recognizable.
+//
 // Usage (from apps/portfolio): node scripts/generate-sprite.mjs
 import sharp from "sharp";
 
+const CELL = 56;
+const COLS = 8;
+const ROWS = 4;
+const SHEET_W = COLS * CELL; // 448
+const SHEET_H = ROWS * CELL; // 224
+const FACE_SRC = "../../docs/superpowers/specs/assets/mascot-face-reference.webp";
+
+// ---------------------------------------------------------------------------
+// Pixel body art (torso + animated legs, no head — the photo is the head).
+// 12 wide x 9 tall, rendered at scale 2 -> 24x18 px in the 56px cell.
+// ---------------------------------------------------------------------------
 const PALETTE = {
   _: null,                 // transparent
-  C: [155, 155, 155, 255], // cap gray (lighter, more visible)
-  D: [105, 105, 105, 255], // cap brim / shading
-  H: [38,  24,  10,  255], // hair very dark brown/black
-  S: [228, 182, 136, 255], // skin warm
-  G: [80,  80,  80,  255], // glasses frame (medium gray — visible on skin bg)
-  g: [215, 215, 215, 255], // glasses lens (very light gray — clearly see-through)
-  e: [20,  20,  20,  255], // eyes (pupils through lenses)
-  B: [44,  62,  102, 255], // shirt dark blue
-  b: [28,  42,  72,  255], // shirt shading
-  P: [50,  50,  50,  255], // pants
-  K: [15,  15,  15,  255], // shoes black
-  W: [255, 255, 255, 255], // highlight / Z / !
-  M: [168, 88,  70,  255], // lips subtle
-  n: [200, 155, 110, 255], // nose/shadow (slightly darker skin)
+  B: [44, 62, 102, 255],   // shirt dark blue
+  b: [33, 47, 78, 255],    // shirt shading
+  S: [232, 184, 138, 255], // hand/skin
+  P: [51, 51, 51, 255],    // pants
+  K: [26, 26, 26, 255],    // shoes
+  W: [255, 255, 255, 255], // overlay (Z / !)
 };
 
-// ─── HEAD GRIDS (12 wide × 11 tall) ──────────────────────────────────────────
-
-// Front face: gray cap, dark curly hair on sides, ROUND wire-frame glasses (G=frame, g=lens),
-// skin face, subtle mouth. The glasses are the most important recognition feature.
-const HEAD_FRONT = [
-  "___CCCCCC___",  // cap dome
-  "__CCCCCCCC__",  // cap dome
-  "_CCCCCCCCCC_",  // cap dome
-  "DDDDDDDDDDDD",  // baseball cap brim — full width
-  "HHSSSSSSSSHH",  // hair + forehead
-  "HHGgSSSgGHHH",  // glasses: G=thin wire frame, g=lens interior — round frames
-  "HHGgSSSgGHHH",  // glasses row 2 — making them ROUND (2px tall)
-  "HHHSSSSSnnHH",  // below lenses: cheeks (n=shadow), hair sides
-  "HHHSSSSSSnnH",  // cheeks
-  "_HHSSMSSnHH_",  // lips — single M pixel, n=chin shadow
-  "__HSSSSSHH__",  // chin
-];
-
-// Back of head: cap + dark curly hair, neck visible at bottom
-const HEAD_BACK = [
-  "___CCCCCC___",
-  "__CCCCCCCC__",
-  "_CCCCCCCCCC_",
-  "DDDDDDDDDDDD",  // brim
-  "HHHHHHHHHHHH",  // all hair from behind
-  "HHHHHHHHHHHH",
-  "_HHHHHHHHHH_",
-  "_HHSSSSSSHH_",  // back of neck skin visible
-  "__HSSSSSSSH_",
-  "__HSSSSSSSH_",
-  "___HSSSSSH__",
-];
-
-// Right side profile: cap brim extends right, dark hair on left,
-// round glasses side-on, subtle cheek and jaw
-const HEAD_RIGHT = [
-  "___CCCCCC___",  // cap top
-  "__CCCCCCCCC_",  // cap
-  "__CCCCCCCCC_",  // cap
-  "_DDDDDDDDDDD",  // brim extends right (profile view)
-  "HHHSSSSSSS__",  // hair (curly) left, skin right
-  "HHHSGgGSSSS_",  // glasses from side: GgG = frame-lens-frame
-  "HHHSGgGSSMS_",  // glasses row 2 + mouth corner hint (M=subtle)
-  "HHHHSSSSSSn_",  // cheek (n=shadow under jaw)
-  "_HHHHSSSnnn_",  // jaw with shadow
-  "_HHHHSSSnnn_",  // chin
-  "__HHHSSSn___",  // neck
-];
-
-// ─── BODY GRIDS (12 wide × 9 tall) ───────────────────────────────────────────
-
-// Standing (front): hands at sides, standing still
-const BODY_STAND_FRONT = [
+const BODY_STAND = [
   "__BBBBBBBB__",
   "_BBBBBBBBBB_",
   "_BbBBBBBBbB_",
   "_BbBBBBBBbB_",
-  "_SbBBBBBBbS_",  // hands (S=skin showing)
+  "_SbBBBBBBbS_",
   "__PPPPPPPP__",
   "__PP____PP__",
   "__PP____PP__",
   "__KK____KK__",
 ];
-
-// Run front frame A: legs spread wide
-const BODY_RUN_FRONT_A = [
+const BODY_RUN_A = [
   "__BBBBBBBB__",
   "_BBBBBBBBBB_",
   "_BbBBBBBBbB_",
   "_SbBBBBBBbB_",
   "__BBBBBBBbS_",
-  "_SPPPPPPPP__",  // arm swings
-  "PPP______PPP",
+  "__PPPPPPPP__",
+  "_PP______PP_",
   "_PP______PP_",
   "_KK______KK_",
 ];
-
-// Run front frame B: legs crossing (mid-stride)
-const BODY_RUN_FRONT_B = [
+const BODY_RUN_B = [
   "__BBBBBBBB__",
   "_BBBBBBBBBB_",
   "_BbBBBBBBbB_",
   "_BbBBBBBBbS_",
   "_SbBBBBBBB__",
-  "__PPPPPPPP_S",  // arm swings other side
+  "__PPPPPPPP__",
   "___PP__PP___",
   "___PP__PP___",
   "___KK__KK___",
 ];
-
-// Run right frame A: side stride, arm forward
-const BODY_RUN_RIGHT_A = [
-  "__BBBBBBBB__",
-  "_BBBBBBBBBB_",
-  "_BBBBBBBBSb_",  // arm extends forward (right)
-  "_BBBBBBBBB__",
-  "_BBBBBBBBB__",
-  "__PPPPPPPP__",
-  "PPP_____PP__",  // stride wide
-  "_PP_____PP__",
-  "_KK_____KK__",
-];
-
-// Run right frame B: side stride, other phase
-const BODY_RUN_RIGHT_B = [
-  "__BBBBBBBB__",
-  "_BBBBBBBBBB_",
-  "_BBBBBBBBSb_",
-  "_BBBBBBBBB__",
-  "_BBBBBBBBB__",
-  "__PPPPPPPP__",
-  "____PPPPP___",
-  "____PPPP____",
-  "_KKK_KKK____",  // feet cross
-];
-
-// Wave: one arm raised (right side arm up)
 const BODY_WAVE = [
-  "_BBBBBBBBBS_",  // arm raised up-right (S=hand skin)
+  "__BBBBBBBBS_",
   "_BBBBBBBBBb_",
   "_BbBBBBBBbB_",
   "_BbBBBBBBB__",
@@ -150,124 +74,139 @@ const BODY_WAVE = [
   "__PP____PP__",
   "__KK____KK__",
 ];
+const OVERLAY_EXCLAIM = ["W", "W", "_", "W"]; // 1x4
+const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"]; // 3x4
 
-// Sleeping: top-down lying pose — head on left, body/legs on right (24 wide × 8 tall)
-const SLEEPING = [
-  "________________________",
-  "___CCCCC____BBBBBBBBB___",
-  "__CCCCCCC__BBBBBBBBBBB__",
-  "__HSSSSSH__BBBBBBBBBBBB_",
-  "__HSGgSSH__BBBBBBBBBBBB_",
-  "__HSSMSSH__PPPPPPPPPKK__",
-  "___HHHHH____PPPPPPPPK___",
-  "________________________",
-];
-
-const OVERLAY_EXCLAIM = ["W_", "W_", "__", "W_"];
-const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"];
-
-// === Row-length validation guard ===
-const GRIDS = {
-  HEAD_FRONT,
-  HEAD_BACK,
-  HEAD_RIGHT,
-  BODY_STAND_FRONT,
-  BODY_RUN_FRONT_A,
-  BODY_RUN_FRONT_B,
-  BODY_RUN_RIGHT_A,
-  BODY_RUN_RIGHT_B,
-  BODY_WAVE,
-  SLEEPING,
-  OVERLAY_EXCLAIM,
-  OVERLAY_Z,
-};
+// Validation: every grid must have equal-length rows.
+const GRIDS = { BODY_STAND, BODY_RUN_A, BODY_RUN_B, BODY_WAVE, OVERLAY_EXCLAIM, OVERLAY_Z };
 for (const [name, grid] of Object.entries(GRIDS)) {
-  const widths = grid.map((row) => row.length);
-  const unique = [...new Set(widths)];
-  if (unique.length > 1) {
-    throw new Error(
-      `Grid "${name}" has rows of unequal length: ${JSON.stringify(widths)}`
-    );
-  }
+  const w = grid[0].length;
+  grid.forEach((row, i) => {
+    if (row.length !== w) throw new Error(`Grid ${name} row ${i} has length ${row.length}, expected ${w}`);
+  });
 }
 
-const SHEET_W = 256, SHEET_H = 128, CELL = 32;
-const sheet = new Uint8Array(SHEET_W * SHEET_H * 4);
+// ---------------------------------------------------------------------------
+// Body raster layer (drawn into a single 448x224 RGBA buffer).
+// ---------------------------------------------------------------------------
+const body = new Uint8Array(SHEET_W * SHEET_H * 4);
 
-function drawGrid(grid, x0, y0, { mirror = false } = {}) {
+function drawGrid(buf, grid, x0, y0, { mirror = false, scale = 2 } = {}) {
   const h = grid.length, w = grid[0].length;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const ch = grid[y][mirror ? w - 1 - x : x];
+  for (let gy = 0; gy < h; gy++) {
+    for (let gx = 0; gx < w; gx++) {
+      const ch = grid[gy][mirror ? w - 1 - gx : gx];
       const rgba = PALETTE[ch];
       if (!rgba) continue;
-      const px = x0 + x, py = y0 + y;
-      if (px < 0 || py < 0 || px >= SHEET_W || py >= SHEET_H) continue;
-      sheet.set(rgba, (py * SHEET_W + px) * 4);
+      for (let sy = 0; sy < scale; sy++) {
+        for (let sx = 0; sx < scale; sx++) {
+          const px = x0 + gx * scale + sx;
+          const py = y0 + gy * scale + sy;
+          if (px < 0 || py < 0 || px >= SHEET_W || py >= SHEET_H) continue;
+          buf.set(rgba, (py * SHEET_W + px) * 4);
+        }
+      }
     }
   }
 }
 
-function drawCharacter(col, row, head, body, { mirror = false, bob = 0, overlay = null, overlayAt = [24, 2] } = {}) {
-  const x0 = col * CELL + 10, y0 = row * CELL + 6 + bob;
-  drawGrid(head, x0, y0, { mirror });
-  drawGrid(body, x0, y0 + 11, { mirror });
-  if (overlay) drawGrid(overlay, col * CELL + overlayAt[0], row * CELL + overlayAt[1]);
+// Body is 24px wide (12*2), centered in the 56px cell; sits in the lower half.
+const BODY_W = 24;
+const BODY_X = Math.round((CELL - BODY_W) / 2); // 16
+const BODY_Y = 30; // leaves the top ~30px for the head photo
+
+// Head-composite jobs collected here, applied via sharp after the body layer.
+const headJobs = []; // { col, row, mirror, bob }
+
+function place(col, row, { bodyGrid = null, mirrorBody = false, bob = 0, headMirror = false, overlay = null } = {}) {
+  if (bodyGrid) drawGrid(body, bodyGrid, col * CELL + BODY_X, row * CELL + BODY_Y + bob, { mirror: mirrorBody });
+  if (overlay === "!") drawGrid(body, OVERLAY_EXCLAIM, col * CELL + 44, row * CELL + 6);
+  if (overlay === "Z") drawGrid(body, OVERLAY_Z, col * CELL + 40, row * CELL + 2);
+  headJobs.push({ col, row, mirror: headMirror, bob });
 }
 
-function drawSleeping(col, row, zOffset) {
-  drawGrid(SLEEPING, col * CELL + 4, row * CELL + 16);
-  drawGrid(OVERLAY_Z, col * CELL + 22 + zOffset, row * CELL + 6 + zOffset);
+// Sleeping: head + Z only, lower in the cell, no standing body.
+function placeSleeping(col, row, zOffset) {
+  drawGrid(body, OVERLAY_Z, col * CELL + 34 + zOffset, row * CELL + 6 + zOffset);
+  headJobs.push({ col, row, mirror: false, bob: 14 });
 }
 
-// ─── idle / alert / tired ────────────────────────────────────────────────────
-drawCharacter(3, 3, HEAD_FRONT, BODY_STAND_FRONT);
-drawCharacter(7, 3, HEAD_FRONT, BODY_STAND_FRONT, { overlay: OVERLAY_EXCLAIM });
-drawCharacter(3, 2, HEAD_FRONT, BODY_STAND_FRONT, { bob: 2, overlay: OVERLAY_Z });
+// --- Cell map (identical coordinates to oneko.gif) -------------------------
+// idle / alert / tired
+place(3, 3, { bodyGrid: BODY_STAND });
+place(7, 3, { bodyGrid: BODY_STAND, overlay: "!" });
+place(3, 2, { bodyGrid: BODY_STAND, overlay: "Z" });
+// sleeping (2 frames)
+placeSleeping(2, 0, 0);
+placeSleeping(2, 1, 2);
+// wave (was scratchSelf)
+place(5, 0, { bodyGrid: BODY_WAVE });
+place(6, 0, { bodyGrid: BODY_STAND });
+place(7, 0, { bodyGrid: BODY_WAVE });
+// stretch toward walls (was scratchWall*)
+place(0, 0, { bodyGrid: BODY_WAVE });
+place(0, 1, { bodyGrid: BODY_STAND });
+place(7, 1, { bodyGrid: BODY_WAVE });
+place(6, 2, { bodyGrid: BODY_STAND });
+place(2, 2, { bodyGrid: BODY_WAVE });
+place(2, 3, { bodyGrid: BODY_STAND });
+place(4, 0, { bodyGrid: BODY_WAVE, mirrorBody: true, headMirror: true });
+place(4, 1, { bodyGrid: BODY_STAND, mirrorBody: true, headMirror: true });
+// runs — N (away) and S (toward) use the front body; E/W use side strides
+place(1, 2, { bodyGrid: BODY_RUN_A });
+place(1, 3, { bodyGrid: BODY_RUN_B, bob: 1 });
+place(6, 3, { bodyGrid: BODY_RUN_A });
+place(7, 2, { bodyGrid: BODY_RUN_B, bob: 1 });
+place(3, 0, { bodyGrid: BODY_RUN_A });
+place(3, 1, { bodyGrid: BODY_RUN_B, bob: 1 });
+place(4, 2, { bodyGrid: BODY_RUN_A, mirrorBody: true, headMirror: true });
+place(4, 3, { bodyGrid: BODY_RUN_B, mirrorBody: true, bob: 1, headMirror: true });
+// diagonals reuse nearest cardinal body
+place(0, 2, { bodyGrid: BODY_RUN_A });
+place(0, 3, { bodyGrid: BODY_RUN_B, bob: 1 });
+place(1, 0, { bodyGrid: BODY_RUN_A, headMirror: true });
+place(1, 1, { bodyGrid: BODY_RUN_B, bob: 1, headMirror: true });
+place(5, 1, { bodyGrid: BODY_RUN_A });
+place(5, 2, { bodyGrid: BODY_RUN_B, bob: 1 });
+place(5, 3, { bodyGrid: BODY_RUN_A, mirrorBody: true, headMirror: true });
+place(6, 1, { bodyGrid: BODY_RUN_B, mirrorBody: true, bob: 1, headMirror: true });
 
-// ─── sleeping ────────────────────────────────────────────────────────────────
-drawSleeping(2, 0, 0);
-drawSleeping(2, 1, 2);
+// ---------------------------------------------------------------------------
+// Prepare the real-face head (normal + mirrored) and composite into each cell.
+// ---------------------------------------------------------------------------
+const HEAD_H = 30; // px tall in the cell
 
-// ─── wave (scratchSelf) ───────────────────────────────────────────────────────
-drawCharacter(5, 0, HEAD_FRONT, BODY_WAVE);
-drawCharacter(6, 0, HEAD_FRONT, BODY_STAND_FRONT);
-drawCharacter(7, 0, HEAD_FRONT, BODY_WAVE);
+// Trim transparent margin, crop to the head (drop shoulders), resize.
+const trimmed = await sharp(FACE_SRC).trim().toBuffer({ resolveWithObject: true });
+const tw = trimmed.info.width;
+const th = trimmed.info.height;
+const headCropH = Math.round(th * 0.72); // cap-top to collar
+const headBuf = await sharp(trimmed.data)
+  .extract({ left: 0, top: 0, width: tw, height: headCropH })
+  .resize({ height: HEAD_H })
+  .png()
+  .toBuffer({ resolveWithObject: true });
+const HEAD_W = headBuf.info.width;
+const headNormal = headBuf.data;
+const headMirror = await sharp(headBuf.data).flop().png().toBuffer();
 
-// ─── stretch toward walls ─────────────────────────────────────────────────────
-drawCharacter(0, 0, HEAD_BACK,  BODY_WAVE);
-drawCharacter(0, 1, HEAD_BACK,  BODY_STAND_FRONT);
-drawCharacter(7, 1, HEAD_FRONT, BODY_WAVE);
-drawCharacter(6, 2, HEAD_FRONT, BODY_STAND_FRONT);
-drawCharacter(2, 2, HEAD_RIGHT, BODY_WAVE);
-drawCharacter(2, 3, HEAD_RIGHT, BODY_STAND_FRONT);
-drawCharacter(4, 0, HEAD_RIGHT, BODY_WAVE, { mirror: true });
-drawCharacter(4, 1, HEAD_RIGHT, BODY_STAND_FRONT, { mirror: true });
+const HEAD_X = Math.round((CELL - HEAD_W) / 2);
+const HEAD_Y = 1;
 
-// ─── runs ─────────────────────────────────────────────────────────────────────
-drawCharacter(1, 2, HEAD_BACK, BODY_RUN_FRONT_A);
-drawCharacter(1, 3, HEAD_BACK, BODY_RUN_FRONT_B, { bob: 1 });
-drawCharacter(6, 3, HEAD_FRONT, BODY_RUN_FRONT_A);
-drawCharacter(7, 2, HEAD_FRONT, BODY_RUN_FRONT_B, { bob: 1 });
-drawCharacter(3, 0, HEAD_RIGHT, BODY_RUN_RIGHT_A);
-drawCharacter(3, 1, HEAD_RIGHT, BODY_RUN_RIGHT_B, { bob: 1 });
-drawCharacter(4, 2, HEAD_RIGHT, BODY_RUN_RIGHT_A, { mirror: true });
-drawCharacter(4, 3, HEAD_RIGHT, BODY_RUN_RIGHT_B, { mirror: true, bob: 1 });
+const composites = headJobs.map((j) => ({
+  input: j.mirror ? headMirror : headNormal,
+  left: j.col * CELL + HEAD_X,
+  top: j.row * CELL + HEAD_Y + (j.bob || 0),
+}));
 
-// ─── diagonals (reuse nearest cardinal art) ───────────────────────────────────
-drawCharacter(0, 2, HEAD_BACK, BODY_RUN_FRONT_A);
-drawCharacter(0, 3, HEAD_BACK, BODY_RUN_FRONT_B, { bob: 1 });
-drawCharacter(1, 0, HEAD_BACK, BODY_RUN_FRONT_A);
-drawCharacter(1, 1, HEAD_BACK, BODY_RUN_FRONT_B, { bob: 1 });
-drawCharacter(5, 1, HEAD_RIGHT, BODY_RUN_RIGHT_A);
-drawCharacter(5, 2, HEAD_RIGHT, BODY_RUN_RIGHT_B, { bob: 1 });
-drawCharacter(5, 3, HEAD_RIGHT, BODY_RUN_RIGHT_A, { mirror: true });
-drawCharacter(6, 1, HEAD_RIGHT, BODY_RUN_RIGHT_B, { mirror: true, bob: 1 });
+const rawBody = { raw: { width: SHEET_W, height: SHEET_H, channels: 4 } };
+const sheet = await sharp(Buffer.from(body), rawBody).composite(composites).png().toBuffer();
 
-const raw = { raw: { width: SHEET_W, height: SHEET_H, channels: 4 } };
-await sharp(Buffer.from(sheet), raw).png().toFile("public/mini-dogan.png");
-await sharp(Buffer.from(sheet), raw)
-  .resize(SHEET_W * 8, SHEET_H * 8, { kernel: "nearest" })
+await sharp(sheet).toFile("public/mini-dogan.png");
+await sharp(sheet)
+  .resize(SHEET_W * 4, SHEET_H * 4, { kernel: "nearest" })
   .png()
   .toFile("../../docs/superpowers/specs/assets/sprite-preview.png");
-console.log("Wrote public/mini-dogan.png and sprite-preview.png");
+
+console.log(`Wrote public/mini-dogan.png (${SHEET_W}x${SHEET_H}, ${CELL}px cells) and sprite-preview.png`);
+console.log(`Head size: ${HEAD_W}x${HEAD_H}px`);

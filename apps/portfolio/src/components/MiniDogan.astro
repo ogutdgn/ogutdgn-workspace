@@ -24,6 +24,8 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
     let lastFrameTimestamp;
 
     const nekoSpeed = 10;
+    const cellSize = 56; // sprite cell size in px (matches generate-sprite.mjs)
+    const half = cellSize / 2;
     const spriteSets = {
       idle: [[-3, -3]],
       alert: [[-7, -3]],
@@ -47,13 +49,13 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
     function init() {
       nekoEl.id = "mini-dogan";
       nekoEl.ariaHidden = true;
-      nekoEl.style.width = "32px";
-      nekoEl.style.height = "32px";
+      nekoEl.style.width = `${cellSize}px`;
+      nekoEl.style.height = `${cellSize}px`;
       nekoEl.style.position = "fixed";
       nekoEl.style.pointerEvents = "auto";
       nekoEl.style.imageRendering = "pixelated";
-      nekoEl.style.left = `${nekoPosX - 16}px`;
-      nekoEl.style.top = `${nekoPosY - 16}px`;
+      nekoEl.style.left = `${nekoPosX - half}px`;
+      nekoEl.style.top = `${nekoPosY - half}px`;
       nekoEl.style.zIndex = Number.MAX_VALUE;
       nekoEl.style.backgroundImage = `url(${spriteImage})`;
 
@@ -82,7 +84,7 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
 
     function setSprite(name, frame) {
       const sprite = spriteSets[name][frame % spriteSets[name].length];
-      nekoEl.style.backgroundPosition = `${sprite[0] * 32}px ${sprite[1] * 32}px`;
+      nekoEl.style.backgroundPosition = `${sprite[0] * cellSize}px ${sprite[1] * cellSize}px`;
     }
 
     function resetIdleAnimation() {
@@ -95,10 +97,10 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
 
       if (idleTime > 10 && Math.floor(Math.random() * 200) == 0 && idleAnimation == null) {
         let availableIdleAnimations = ["sleeping", "scratchSelf"];
-        if (nekoPosX < 32) availableIdleAnimations.push("scratchWallW");
-        if (nekoPosY < 32) availableIdleAnimations.push("scratchWallN");
-        if (nekoPosX > window.innerWidth - 32) availableIdleAnimations.push("scratchWallE");
-        if (nekoPosY > window.innerHeight - 32) availableIdleAnimations.push("scratchWallS");
+        if (nekoPosX < cellSize) availableIdleAnimations.push("scratchWallW");
+        if (nekoPosY < cellSize) availableIdleAnimations.push("scratchWallN");
+        if (nekoPosX > window.innerWidth - cellSize) availableIdleAnimations.push("scratchWallE");
+        if (nekoPosY > window.innerHeight - cellSize) availableIdleAnimations.push("scratchWallS");
         
         idleAnimation = availableIdleAnimations[Math.floor(Math.random() * availableIdleAnimations.length)];
       }
@@ -181,11 +183,11 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       nekoPosX -= (diffX / distance) * nekoSpeed;
       nekoPosY -= (diffY / distance) * nekoSpeed;
 
-      nekoPosX = Math.min(Math.max(16, nekoPosX), window.innerWidth - 16);
-      nekoPosY = Math.min(Math.max(16, nekoPosY), window.innerHeight - 16);
+      nekoPosX = Math.min(Math.max(half, nekoPosX), window.innerWidth - half);
+      nekoPosY = Math.min(Math.max(half, nekoPosY), window.innerHeight - half);
 
-      nekoEl.style.left = `${nekoPosX - 16}px`;
-      nekoEl.style.top = `${nekoPosY - 16}px`;
+      nekoEl.style.left = `${nekoPosX - half}px`;
+      nekoEl.style.top = `${nekoPosY - half}px`;
     }
 
     init();
