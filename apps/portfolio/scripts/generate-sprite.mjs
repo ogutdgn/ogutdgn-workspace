@@ -9,11 +9,11 @@
 // Usage (from apps/portfolio): node scripts/generate-sprite.mjs
 import sharp from "sharp";
 
-const CELL = 56;
+const CELL = 64;
 const COLS = 8;
 const ROWS = 4;
-const SHEET_W = COLS * CELL; // 448
-const SHEET_H = ROWS * CELL; // 224
+const SHEET_W = COLS * CELL; // 512
+const SHEET_H = ROWS * CELL; // 256
 const FACE_SRC = "../../docs/superpowers/specs/assets/mascot-face-reference.webp";
 
 // ---------------------------------------------------------------------------
@@ -31,51 +31,64 @@ const PALETTE = {
 };
 
 const BODY_STAND = [
-  "____BBBBBB____",
-  "__BBBBBBBBBB__",
-  "_BBBBBBBBBBBB_",
-  "_BbBBBBBBBBbB_",
-  "_BbBBBBBBBBbB_",
-  "_SbBBBBBBBBbS_",
-  "__PPPPPPPPPP__",
-  "__PPP____PPP__",
-  "__PPP____PPP__",
-  "__KKK____KKK__",
+  "___BBBBBB___",
+  "__BBBBBBBB__",
+  "_BBBBBBBBBB_",
+  "_BbBBBBBBbB_",
+  "_BbBBBBBBbB_",
+  "_BbBBBBBBbB_",
+  "_SbBBBBBBbS_",
+  "__PPPPPPPP__",
+  "__PP____PP__",
+  "__PP____PP__",
+  "__PP____PP__",
+  "__KK____KK__",
+  "____________",
 ];
 const BODY_RUN_A = [
-  "____BBBBBB____",
-  "__BBBBBBBBBB__",
-  "_BBBBBBBBBBBB_",
-  "_SbBBBBBBBBbB_",
-  "__BBBBBBBBBbS_",
-  "__PPPPPPPPPP__",
-  "_PPP______PPP_",
-  "_PP________PP_",
-  "_KK________KK_",
-  "______________",
+  "___BBBBBB___",
+  "__BBBBBBBB__",
+  "_BBBBBBBBBB_",
+  "_SbBBBBBBbB_",
+  "_BbBBBBBBbB_",
+  "__BBBBBBBbS_",
+  "__PPPPPPPP__",
+  "_PP______PP_",
+  "_PP______PP_",
+  "_PP______PP_",
+  "_KK______KK_",
+  "____________",
+  "____________",
 ];
 const BODY_RUN_B = [
-  "____BBBBBB____",
-  "__BBBBBBBBBB__",
-  "_BBBBBBBBBBBB_",
-  "_BbBBBBBBBBbS_",
-  "__BBBBBBBBBB__",
-  "__PPPPPPPPPP__",
-  "____PPPPPP____",
-  "____PPPPPP____",
-  "____KKKKKK____",
-  "______________",
+  "___BBBBBB___",
+  "__BBBBBBBB__",
+  "_BBBBBBBBBB_",
+  "_BbBBBBBBbS_",
+  "_BbBBBBBBbB_",
+  "_SbBBBBBBB__",
+  "__PPPPPPPP__",
+  "___PPPPPP___",
+  "___PPPPPP___",
+  "___PPPPPP___",
+  "___KKKKKK___",
+  "____________",
+  "____________",
 ];
 const BODY_WAVE = [
-  "____BBBBBB__S_",
-  "__BBBBBBBBBBb_",
-  "_BBBBBBBBBBBB_",
-  "_BbBBBBBBBBB__",
-  "_SbBBBBBBBB___",
-  "__PPPPPPPPPP__",
-  "__PPP____PPP__",
-  "__PPP____PPP__",
-  "__KKK____KKK__",
+  "___BBBBBB_S_",
+  "__BBBBBBBBb_",
+  "_BBBBBBBBBB_",
+  "_BbBBBBBBbB_",
+  "_BbBBBBBBB__",
+  "_SbBBBBBBB__",
+  "__PPPPPPPP__",
+  "__PP____PP__",
+  "__PP____PP__",
+  "__PP____PP__",
+  "__KK____KK__",
+  "____________",
+  "____________",
 ];
 const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"]; // 3x4
 
@@ -113,9 +126,9 @@ function drawGrid(buf, grid, x0, y0, { mirror = false, scale = 2 } = {}) {
 }
 
 // Body is 24px wide (12*2), centered in the 56px cell; sits in the lower half.
-const BODY_W = 28;
-const BODY_X = Math.round((CELL - BODY_W) / 2); // 14
-const BODY_Y = 35; // pushed down so the full head (incl. chin/jaw) shows above the shirt
+const BODY_W = 24;
+const BODY_X = Math.round((CELL - BODY_W) / 2); // 20
+const BODY_Y = 33; // collar tucks just under the chin; longer body extends down the cell
 
 // Head-composite jobs collected here, applied via sharp after the body layer.
 const headJobs = []; // { col, row, mirror, bob }
