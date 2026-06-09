@@ -11,9 +11,6 @@ importers:
 
   .:
     devDependencies:
-      '@sanity/client':
-        specifier: ^7.22.1
-        version: 7.22.1
       turbo:
         specifier: ^2.3.3
         version: 2.9.6
