@@ -1,0 +1,162 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { FilterBar } from "@components/FilterBar.tsx";
+import { getToolMetas, deriveCategories } from "@lib/tool";
+
+const tools = await getToolMetas();
+const categories = deriveCategories(tools);
+const stats = [
+  { label: "total tools", value: tools.length },
+  { label: "active", value: tools.filter((t) => t.status === "active").length },
+  { label: "open source", value: tools.filter((t) => t.githubLink).length },
+];
+---
+<BaseLayout title="tools.ogutdgn">
+
+  {/* ── DESKTOP: two-column split layout ── */}
+  <div class="hidden md:flex h-[calc(100vh-3.5rem)] mt-14 overflow-hidden">
+
+    {/* LEFT — grid: proportional rows (50% text / 35% image / 15% stats) */}
+    <div class="w-[30%] flex-shrink-0 grid grid-rows-[50fr_35fr_15fr] px-8 py-8 border-r border-border">
+
+      {/* Row 1: Text — 50% of panel height */}
+      <div class="flex flex-col justify-start overflow-hidden pt-2">
+        <span class="font-mono text-xs text-dim block mb-3">DOGAN OGUT / TOOLS</span>
+
+        <h1 class="font-bold tracking-tight text-text leading-tight mb-3" style="font-size: clamp(0.875rem, 2.8vh, 2.25rem)">
+          Solutions that I have found to any kind of{" "}
+          <span class="text-neon text-glow">problems in my life</span>{" "}
+          <span class="text-muted">:D</span>
+        </h1>
+
+        <p class="text-muted leading-relaxed overflow-hidden" style="font-size: clamp(0.65rem, 1.3vh, 1rem)">
+          If you ask me, engineering is the ability to produce solutions to problems.
+          Today we think AI does everything and maybe we fall into despair. Instead of
+          being negatively affected by this AI wave, I aim to use AI while building
+          solutions to my problems and in doing so, I develop my engineering ability
+          to solve problems in everyday life. I encounter many problems in my daily
+          computer life and I truly enjoy finding my own solutions to them. That's
+          why I built this tools page to put the solutions I've created here.
+        </p>
+      </div>
+
+      {/* Row 2: Image — 35% of panel height */}
+      <div class="flex items-center justify-center overflow-hidden pt-2 pb-6">
+        <div
+          class="relative"
+          style="height: 100%; aspect-ratio: 280 / 340; max-width: 100%"
+        >
+          <img
+            src="/dog1to.webp"
+            alt="me"
+            class="object-contain drop-shadow-lg w-full h-full"
+          />
+
+          {/* "That's me!" — points to face */}
+          <div class="absolute left-[-85px] top-[42%] flex items-center gap-1 z-10">
+            <span class="font-mono text-neon rotate-[-4deg] inline-block whitespace-nowrap" style="font-size: clamp(0.5rem, 1.2vh, 0.75rem)">That's me!</span>
+            <svg width="52" height="16" viewBox="0 0 52 16" class="text-neon flex-shrink-0">
+              <path d="M2 8 Q26 5 48 8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <path d="M48 8 L40 4 M48 8 L40 12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          {/* toilet paper annotation */}
+          <div class="absolute right-[-115px] top-[5%] flex items-start gap-1 z-10">
+            <svg width="50" height="24" viewBox="0 0 50 24" class="text-neon-yellow flex-shrink-0 mt-1">
+              <path d="M48 6 C 36 8, 20 12, 6 18" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <path d="M6 18 L14 19 M6 18 L11 11" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-mono text-neon-yellow leading-tight block w-24 rotate-[2deg]" style="font-size: clamp(0.5rem, 1.2vh, 0.75rem)">
+              An example of a solution that I have found in my life
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Stats — 15% of panel height */}
+      <div class="flex flex-col justify-end space-y-2 overflow-hidden">
+        {stats.map((stat) => (
+          <div class="flex items-center justify-between font-mono text-xs border-b border-border/50 pb-2">
+            <span class="text-dim">{stat.label}</span>
+            <span class="text-neon font-semibold">{stat.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* RIGHT — scrollable */}
+    <div class="w-[70%] overflow-y-auto px-8 py-10">
+      <FilterBar tools={tools} categories={categories} client:load />
+    </div>
+
+  </div>
+
+  {/* ── MOBILE: stacked layout ── */}
+  <div class="md:hidden mt-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
+    <div class="px-8 pt-10 pb-8 border-b border-border">
+      <span class="font-mono text-xs text-dim block mb-5">DOGAN OGUT / TOOLS</span>
+      <h1 class="text-3xl font-bold tracking-tight text-text leading-tight mb-4">
+        Solutions that I have found to any kind of{" "}
+        <span class="text-neon text-glow">problems in my life</span>{" "}
+        <span class="text-muted">:D</span>
+      </h1>
+      <p class="text-muted text-sm leading-relaxed mb-6">
+        If you ask me, engineering is the ability to produce solutions to problems.
+        Today we think AI does everything and maybe we fall into despair. Instead of
+        being negatively affected by this AI wave, I aim to use AI while building
+        solutions to my problems — and in doing so, I develop my engineering ability
+        to solve problems in everyday life. I encounter many problems in my daily
+        computer life and I truly enjoy finding my own solutions to them. That's
+        why I built this tools page — to put the solutions I've created here.
+      </p>
+
+      {/* photo + annotations */}
+      <div class="flex justify-center mb-6">
+        <div class="relative" style="width: 140px">
+          <img
+            src="/dog1to.webp"
+            alt="me"
+            width="140"
+            height="170"
+            class="object-contain drop-shadow-lg"
+          />
+
+          {/* "That's me!" */}
+          <div class="absolute left-[-70px] top-[40%] flex items-center gap-1 z-10">
+            <span class="font-mono text-neon rotate-[-4deg] inline-block whitespace-nowrap" style="font-size: 0.6rem">That's me!</span>
+            <svg width="36" height="12" viewBox="0 0 36 12" class="text-neon flex-shrink-0">
+              <path d="M2 6 Q18 4 32 6" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <path d="M32 6 L26 3 M32 6 L26 9" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          {/* toilet paper annotation */}
+          <div class="absolute right-[-70px] top-[5%] flex items-start gap-1 z-10">
+            <svg width="32" height="18" viewBox="0 0 32 18" class="text-neon-yellow flex-shrink-0 mt-0.5">
+              <path d="M30 4 C 22 6, 12 10, 4 14" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <path d="M4 14 L10 14 M4 14 L8 9" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-mono text-neon-yellow leading-tight block w-16 rotate-[2deg]" style="font-size: 0.6rem">
+              An example of a solution
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        {stats.map((stat) => (
+          <div class="font-mono text-xs">
+            <span class="text-neon font-semibold">{stat.value}</span>
+            <span class="text-dim ml-1">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="px-8 py-8">
+      <FilterBar tools={tools} categories={categories} client:load />
+    </div>
+  </div>
+
+</BaseLayout>

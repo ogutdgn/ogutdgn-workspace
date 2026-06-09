@@ -1,0 +1,36 @@
+---
+import Container from "@components/Container.astro";
+import { SITE, SOCIALS } from "@consts";
+import BackToTop from "@components/BackToTop.astro";
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="animate">
+  <Container>
+    <div class="relative">
+      <div class="absolute right-0 -top-20">
+        <BackToTop />
+      </div>
+    </div>
+    <div class="flex justify-between items-center">
+      <div>
+        &copy; {currentYear} {`|`} {SITE.NAME}
+      </div>
+      <div class="flex flex-wrap gap-1 items-center">
+        <div class="flex gap-4">
+        {SOCIALS.map(social => (
+          <a 
+            href={social.HREF}
+            target="_blank"
+            class="group hover:text-black dark:hover:text-white transition-colors duration-300"
+            aria-label={`${SITE.NAME} on ${social.NAME}`}
+          >
+            {social.NAME}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Container>
+</footer>

@@ -1,0 +1,102 @@
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+:root {
+  --font-geist-sans: "Geist Variable", system-ui, sans-serif;
+  --font-geist-mono: "Geist Mono Variable", monospace;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #07070e;
+    color: #e8e8ff;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgba(124, 106, 247, 0.3);
+    color: #e8e8ff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #07070e;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2e2e5a;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7c6af7;
+  }
+}
+
+@layer utilities {
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(124, 106, 247, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 106, 247, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .card-glow:hover {
+    box-shadow: 0 0 0 1px rgba(124, 106, 247, 0.3), 0 8px 32px rgba(124, 106, 247, 0.12);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  .noise::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  .scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scan-line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124, 106, 247, 0.15), transparent);
+    animation: scan 8s linear infinite;
+  }
+}
+
+@layer components {
+  .tool-prose p { @apply font-sans text-muted text-sm leading-relaxed mb-3; }
+  .tool-prose h2 { @apply font-sans text-text font-semibold text-sm mt-5 mb-2 pb-1 border-b border-border; }
+  .tool-prose h3 { @apply font-mono text-dim font-medium text-xs uppercase tracking-widest mt-4 mb-2; }
+  .tool-prose blockquote { @apply font-sans border-l-2 border-neon/40 pl-3 text-muted text-sm italic mb-3; }
+  .tool-prose strong { @apply text-text font-semibold; }
+  .tool-prose em { @apply italic; }
+  .tool-prose code { @apply font-mono text-xs bg-surface-2 border border-border px-1 py-0.5 rounded text-neon; }
+  .tool-prose a { @apply text-neon underline underline-offset-2 hover:text-neon/80; }
+  .tool-prose ul { @apply list-disc pl-5 text-muted text-sm mb-3 space-y-1; }
+  .tool-prose img { @apply rounded-lg border border-border my-3; }
+}

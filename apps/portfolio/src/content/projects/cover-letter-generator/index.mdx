@@ -1,0 +1,94 @@
+---
+title: "Cover Letter Generator"
+description: "This project is a full-stack web application that generates personalized, job-specific cover letters by combining a candidate’s resume with a job description using an AI language model. It automates the repetitive and time-consuming process of writing tailored cover letters, enabling users to generate, edit, and export high-quality documents in minutes."
+date: 2025-12-11
+demoURL: "https://dascover-demo-lcbr.vercel.app/"
+repoURL: "https://github.com/ogutdgn/dascover-demo"
+---
+
+### Problem Addressed
+
+Writing customized cover letters for multiple job applications is repetitive and inefficient.
+Most applicants reuse generic templates, which reduces quality and relevance.
+
+This application automates the personalization process by dynamically aligning resume content with job descriptions while still allowing users to review and edit the final output.
+
+### Generation Flow
+
+1. User uploads a resume file (PDF / DOC / DOCX)
+1. User provides company name, position title, and job description
+1. Optional profile metadata is included for personalization
+1. Form data is persisted in `sessionStorage` to prevent data loss
+1. A serverless API route: 
+
+  - Extracts resume text
+  - Constructs a structured AI prompt
+  - Calls the OpenAI API
+
+1. Generated cover letter is returned to the client
+1. User can edit, copy, export as PDF, or save locally
+
+### AI & Prompt Engineering
+
+- Uses **GPT-4o-mini** for cost-efficient, high-quality text generation
+- Prompt structure consists of: 
+  - **System prompt** defining role, tone, formatting, and constraints
+  - **User prompt** combining resume content, job description, profile data, and current date
+- Explicit instructions enforce: 
+  - No placeholders
+  - Consistent formatting
+  - Target length (300–400 words)
+- Prompt templates are: 
+  - Editable by the user
+  - Persisted in `localStorage`
+  - Resettable to defaults
+
+### Architecture & State Management
+
+- Stateless serverless backend with a single REST-style API endpoint
+- Client-side state layered across: 
+  - React component state (UI & loading states)
+  - `sessionStorage` for form persistence across reloads
+  - `localStorage` for user profile, prompt templates, and generation history
+- Resume files are: 
+  - Converted to Base64 for session persistence
+  - Reconstructed as `File` objects when restoring state
+
+### PDF & Output Handling
+
+- Custom PDF generation using `jsPDF`
+- Implements: 
+  - Paragraph-aware text splitting
+  - Pagination logic for multi-page documents
+  - Dynamic file naming using candidate and company metadata
+- Generated content remains editable before export, enabling manual refinement
+
+### Error Handling & UX
+
+- Server-side validation for required fields
+- Graceful handling of: 
+  - OpenAI API failures
+  - File processing errors
+- Clear user feedback via: 
+  - Disabled submit states
+  - Inline error messages
+  - Toast notifications
+- No page reloads during generation or editing flow
+
+### Security & Cost Considerations
+
+- OpenAI API key stored exclusively in environment variables
+- No sensitive data persisted on the server
+- All user data remains client-side
+- Cost control via: 
+  - Token limits
+  - Model selection optimized for price/performance
+
+### Architectural Summary
+
+- Full-stack Next.js application using App Router and TypeScript
+- Serverless API route handling file uploads and AI requests
+- Context-aware prompt construction from multiple user inputs
+- Client-side persistence strategy combining `localStorage` and `sessionStorage`
+- Custom document generation pipeline with export and history support
+- Designed for practical UX, low operational overhead, and easy deployment
