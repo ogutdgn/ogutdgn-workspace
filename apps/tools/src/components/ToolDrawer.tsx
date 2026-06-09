@@ -41,11 +41,11 @@ export function ToolDrawer({ tool, onClose }: ToolDrawerProps) {
   useEffect(() => {
     if (!tool) {
       // drawer closing — keep displayed tool until animation done
-      setTimeout(() => setDisplayedTool(null), 300);
-      return;
+      const id = setTimeout(() => setDisplayedTool(null), 300);
+      return () => clearTimeout(id);
     }
 
-    if (!displayedTool || prevToolId.current === null) {
+    if (prevToolId.current === null) {
       // first open
       setDisplayedTool(tool);
       prevToolId.current = tool.slug;
@@ -55,11 +55,12 @@ export function ToolDrawer({ tool, onClose }: ToolDrawerProps) {
     if (prevToolId.current !== tool.slug) {
       // switching tools — slide out then slide in new content
       setContentSliding(true);
-      setTimeout(() => {
+      const id = setTimeout(() => {
         setDisplayedTool(tool);
         prevToolId.current = tool.slug;
         setContentSliding(false);
       }, 200);
+      return () => clearTimeout(id);
     }
   }, [tool]);
 
