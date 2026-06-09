@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import EmbeddedTool from "@components/EmbeddedTool.tsx";
+import { TOOL_COMPONENTS } from "@tools/index";
 import { getToolTypeMeta, STATUS_META } from "@lib/utils";
 
 export async function getStaticPaths() {
@@ -128,10 +129,12 @@ const canonical = `https://tools.ogutdgn.com/${entry.id}`;
           </div>
         )}
 
-        <div class="mb-8">
-          <h2 class="font-mono text-xs text-dim uppercase tracking-widest mb-4">Try it</h2>
-          <EmbeddedTool slug={entry.id} client:only="react" />
-        </div>
+        {TOOL_COMPONENTS[entry.id] && (
+          <div class="mb-8">
+            <h2 class="font-mono text-xs text-dim uppercase tracking-widest mb-4">Try it</h2>
+            <EmbeddedTool slug={entry.id} client:only="react" />
+          </div>
+        )}
       </div>
 
       {/* right sidebar */}
