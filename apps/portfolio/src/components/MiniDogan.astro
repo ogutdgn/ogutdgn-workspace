@@ -7,9 +7,7 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
 ---
 
 <script is:inline define:vars={{ spriteImage }}>
-  const isReducedMotion =
-    window.matchMedia(`(prefers-reduced-motion: reduce)`) === true ||
-    window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true;
+  const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (!isReducedMotion) {
     const nekoEl = document.createElement("div");
@@ -61,7 +59,7 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       nekoEl.style.imageRendering = "pixelated";
       nekoEl.style.left = `${nekoPosX - half}px`;
       nekoEl.style.top = `${nekoPosY - half}px`;
-      nekoEl.style.zIndex = Number.MAX_VALUE;
+      nekoEl.style.zIndex = 40; // above page content, below the z-50 sticky navbar
       nekoEl.style.backgroundImage = `url(${spriteImage})`;
 
       shadowEl = document.createElement("div");
@@ -73,16 +71,24 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       shadowEl.style.background = "rgba(0, 0, 0, 0.3)";
       shadowEl.style.filter = "blur(2px)";
       shadowEl.style.pointerEvents = "none";
-      shadowEl.style.zIndex = Number.MAX_VALUE - 1;
+      shadowEl.style.zIndex = 39; // just under the mascot
       shadowEl.style.display = "none";
 
       document.body.appendChild(nekoEl);
       document.body.appendChild(shadowEl);
       nekoEl.addEventListener("click", explodeHearts);
-      document.addEventListener("mousemove", (event) => {
+
+      // Track the cursor. ClientRouter re-runs this inline script on every
+      // navigation, so remove any previous document-level listener first to
+      // avoid leaking a handler per page view.
+      if (window.__miniDoganMouseMove) {
+        document.removeEventListener("mousemove", window.__miniDoganMouseMove);
+      }
+      window.__miniDoganMouseMove = (event) => {
         mousePosX = event.clientX;
         mousePosY = event.clientY;
-      });
+      };
+      document.addEventListener("mousemove", window.__miniDoganMouseMove);
 
       window.requestAnimationFrame(onAnimationFrame);
     }
@@ -223,7 +229,7 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
         dust.style.top = `${footY}px`;
         dust.style.setProperty("--dx", `${dx}px`);
         dust.style.setProperty("--dy", `${dy}px`);
-        dust.style.zIndex = Number.MAX_VALUE - 1;
+        dust.style.zIndex = 41;
         document.body.appendChild(dust);
         setTimeout(() => dust.remove(), 550);
       }
