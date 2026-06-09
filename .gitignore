@@ -36,3 +36,6 @@ tools-site/
 
 # Claude
 CLAUDE.md
+
+# Internal planning docs (specs/plans) — kept local, not tracked
+docs/superpowers/
