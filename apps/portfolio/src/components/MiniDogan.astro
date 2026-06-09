@@ -22,10 +22,15 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
     let idleAnimation = null;
     let idleAnimationFrame = 0;
     let lastFrameTimestamp;
+    let shadowEl;
 
     const nekoSpeed = 10;
     const cellSize = 64; // sprite cell size in px (matches generate-sprite.mjs)
     const half = cellSize / 2;
+    const jumpHeight = 34;   // peak rise of a jump in px
+    const JUMP_CROUCH = 2;   // anticipation frames before takeoff
+    const JUMP_AIR = 11;     // frames spent airborne
+    const JUMP_LAND = 3;     // landing squash frames
     const spriteSets = {
       idle: [[-3, -3]],
       alert: [[-7, -3]],
@@ -34,8 +39,8 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       scratchWallS: [[-7, -1], [-6, -2]],
       scratchWallE: [[-2, -2], [-2, -3]],
       scratchWallW: [[-4, 0], [-4, -1]],
-      tired: [[-3, -2]],
-      sleeping: [[-2, 0], [-2, -1]],
+      jumpCrouch: [[-2, 0]],
+      jumpAir: [[-2, -1]],
       N: [[-1, -2], [-1, -3]],
       NE: [[0, -2], [0, -3]],
       E: [[-3, 0], [-3, -1]],
@@ -59,7 +64,20 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       nekoEl.style.zIndex = Number.MAX_VALUE;
       nekoEl.style.backgroundImage = `url(${spriteImage})`;
 
+      shadowEl = document.createElement("div");
+      shadowEl.id = "mini-dogan-shadow";
+      shadowEl.setAttribute("aria-hidden", "true");
+      shadowEl.style.position = "fixed";
+      shadowEl.style.height = "7px";
+      shadowEl.style.borderRadius = "50%";
+      shadowEl.style.background = "rgba(0, 0, 0, 0.3)";
+      shadowEl.style.filter = "blur(2px)";
+      shadowEl.style.pointerEvents = "none";
+      shadowEl.style.zIndex = Number.MAX_VALUE - 1;
+      shadowEl.style.display = "none";
+
       document.body.appendChild(nekoEl);
+      document.body.appendChild(shadowEl);
       nekoEl.addEventListener("click", explodeHearts);
       document.addEventListener("mousemove", (event) => {
         mousePosX = event.clientX;
@@ -109,15 +127,34 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
 
       switch (idleAnimation) {
         case "jump": {
-          // Two parabolic hops; offset the element's top to fake the jump.
-          const hopFrames = 11;
-          const hops = 2;
-          const t = idleAnimationFrame % hopFrames;
-          const offset = Math.round(Math.sin((t / (hopFrames - 1)) * Math.PI) * 18);
-          setSprite("idle", 0);
-          nekoEl.style.top = `${nekoPosY - half - offset}px`;
-          if (idleAnimationFrame >= hopFrames * hops - 1) {
-            nekoEl.style.top = `${nekoPosY - half}px`;
+          // A real jump: crouch (anticipation) -> airborne tuck -> landing squash,
+          // with the body changing pose, a shrinking ground shadow and dust puffs.
+          const f = idleAnimationFrame;
+          const groundTop = nekoPosY - half;
+          const footY = nekoPosY + half - 6;
+
+          if (f < JUMP_CROUCH) {
+            // Crouch down before launching.
+            setSprite("jumpCrouch", 0);
+            nekoEl.style.top = `${groundTop}px`;
+            updateShadow(0, footY);
+          } else if (f < JUMP_CROUCH + JUMP_AIR) {
+            // Airborne: parabolic rise/fall with legs tucked.
+            const a = f - JUMP_CROUCH;
+            if (a === 0) spawnDust(nekoPosX, footY); // kick off on takeoff
+            const offset = Math.round(Math.sin((a / (JUMP_AIR - 1)) * Math.PI) * jumpHeight);
+            setSprite("jumpAir", 0);
+            nekoEl.style.top = `${groundTop - offset}px`;
+            updateShadow(offset, footY);
+          } else if (f < JUMP_CROUCH + JUMP_AIR + JUMP_LAND) {
+            // Land with a squash.
+            if (f === JUMP_CROUCH + JUMP_AIR) spawnDust(nekoPosX, footY);
+            setSprite("jumpCrouch", 0);
+            nekoEl.style.top = `${groundTop}px`;
+            updateShadow(0, footY);
+          } else {
+            nekoEl.style.top = `${groundTop}px`;
+            hideShadow();
             resetIdleAnimation();
           }
           break;
@@ -160,6 +197,38 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
       }
     }
 
+    // Ground shadow that shrinks/fades as the mascot rises during a jump.
+    function updateShadow(offset, footY) {
+      const k = Math.max(0, Math.min(1, offset / jumpHeight)); // 0 = grounded, 1 = peak
+      const w = cellSize * (0.42 - 0.22 * k);
+      shadowEl.style.display = "block";
+      shadowEl.style.width = `${w}px`;
+      shadowEl.style.left = `${nekoPosX - w / 2}px`;
+      shadowEl.style.top = `${footY}px`;
+      shadowEl.style.opacity = `${0.3 * (1 - 0.65 * k)}`;
+    }
+
+    function hideShadow() {
+      if (shadowEl) shadowEl.style.display = "none";
+    }
+
+    // Little dust puffs kicked up on takeoff and landing.
+    function spawnDust(centerX, footY) {
+      for (let i = 0; i < 6; i++) {
+        const dust = document.createElement("div");
+        dust.className = "mini-dogan-dust";
+        const dx = (Math.random() - 0.5) * 2 * 20;
+        const dy = -Math.random() * 10;
+        dust.style.left = `${centerX}px`;
+        dust.style.top = `${footY}px`;
+        dust.style.setProperty("--dx", `${dx}px`);
+        dust.style.setProperty("--dy", `${dy}px`);
+        dust.style.zIndex = Number.MAX_VALUE - 1;
+        document.body.appendChild(dust);
+        setTimeout(() => dust.remove(), 550);
+      }
+    }
+
     function frame() {
       frameCount += 1;
       const diffX = nekoPosX - mousePosX;
@@ -173,6 +242,7 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
 
       idleAnimation = null;
       idleAnimationFrame = 0;
+      hideShadow(); // in case a jump was interrupted mid-air
 
       if (idleTime > 1) {
         setSprite("alert", 0);
@@ -214,5 +284,23 @@ const { spriteImage = "/mini-dogan.png" } = Astro.props;
     animation: heartBurst 1s ease-out;
     animation-fill-mode: forwards;
     color: #ab9df2;
+  }
+
+  @keyframes dustPuff {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.7; }
+    100% {
+      transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  :global(.mini-dogan-dust) {
+    position: fixed;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(150, 150, 150, 0.7);
+    pointer-events: none;
+    animation: dustPuff 0.5s ease-out forwards;
   }
 </style>

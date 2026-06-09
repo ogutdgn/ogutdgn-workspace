@@ -90,10 +90,32 @@ const BODY_WAVE = [
   "____________",
   "____________",
 ];
-const OVERLAY_Z = ["WWW", "__W", "_W_", "WWW"]; // 3x4
+// Jump poses (drawn into the two formerly-sleeping cells).
+const BODY_CROUCH = [
+  "___BBBBBB___",
+  "_BBBBBBBBBB_",
+  "_BBBBBBBBBB_",
+  "_SbBBBBBBbS_",
+  "_PPPPPPPPPP_",
+  "PPP______PPP",
+  "PP________PP",
+  "KK________KK",
+];
+const BODY_AIR = [
+  "___BBBBBB___",
+  "__BBBBBBBB__",
+  "_BBBBBBBBBB_",
+  "_BbBBBBBBbB_",
+  "_BbBBBBBBbB_",
+  "_SbBBBBBBbS_",
+  "__PPPPPPPP__",
+  "_PPP____PPP_",
+  "_KKK____KKK_",
+  "____________",
+];
 
 // Validation: every grid must have equal-length rows.
-const GRIDS = { BODY_STAND, BODY_RUN_A, BODY_RUN_B, BODY_WAVE, OVERLAY_Z };
+const GRIDS = { BODY_STAND, BODY_RUN_A, BODY_RUN_B, BODY_WAVE, BODY_CROUCH, BODY_AIR };
 for (const [name, grid] of Object.entries(GRIDS)) {
   const w = grid[0].length;
   grid.forEach((row, i) => {
@@ -135,24 +157,23 @@ const headJobs = []; // { col, row, mirror, bob }
 
 function place(col, row, { bodyGrid = null, mirrorBody = false, bob = 0, headMirror = false, overlay = null } = {}) {
   if (bodyGrid) drawGrid(body, bodyGrid, col * CELL + BODY_X, row * CELL + BODY_Y + bob, { mirror: mirrorBody });
-  if (overlay === "Z") drawGrid(body, OVERLAY_Z, col * CELL + 40, row * CELL + 2);
   headJobs.push({ col, row, mirror: headMirror, bob });
 }
 
-// Sleeping: head + Z only, lower in the cell, no standing body.
-function placeSleeping(col, row, zOffset) {
-  drawGrid(body, OVERLAY_Z, col * CELL + 34 + zOffset, row * CELL + 6 + zOffset);
-  headJobs.push({ col, row, mirror: false, bob: 14 });
+// Jump pose: a body grid at a custom vertical offset + head bob (squash/stretch).
+function placeJump(col, row, grid, bodyY, headBob) {
+  drawGrid(body, grid, col * CELL + BODY_X, row * CELL + bodyY);
+  headJobs.push({ col, row, mirror: false, bob: headBob });
 }
 
 // --- Cell map (identical coordinates to oneko.gif) -------------------------
 // idle / alert / tired
 place(3, 3, { bodyGrid: BODY_STAND });
 place(7, 3, { bodyGrid: BODY_STAND });
-place(3, 2, { bodyGrid: BODY_STAND, overlay: "Z" });
-// sleeping (2 frames)
-placeSleeping(2, 0, 0);
-placeSleeping(2, 1, 2);
+place(3, 2, { bodyGrid: BODY_STAND });
+// jump poses (formerly the sleeping cells)
+placeJump(2, 0, BODY_CROUCH, 41, 8); // crouch / squash (takeoff & landing)
+placeJump(2, 1, BODY_AIR, 30, 0);    // airborne tuck
 // wave (was scratchSelf)
 place(5, 0, { bodyGrid: BODY_WAVE });
 place(6, 0, { bodyGrid: BODY_STAND });
