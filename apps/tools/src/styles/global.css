@@ -87,3 +87,16 @@
     animation: scan 8s linear infinite;
   }
 }
+
+@layer components {
+  .tool-prose p { @apply font-sans text-muted text-sm leading-relaxed mb-3; }
+  .tool-prose h2 { @apply font-sans text-text font-semibold text-sm mt-5 mb-2 pb-1 border-b border-border; }
+  .tool-prose h3 { @apply font-mono text-dim font-medium text-xs uppercase tracking-widest mt-4 mb-2; }
+  .tool-prose blockquote { @apply font-sans border-l-2 border-neon/40 pl-3 text-muted text-sm italic mb-3; }
+  .tool-prose strong { @apply text-text font-semibold; }
+  .tool-prose em { @apply italic; }
+  .tool-prose code { @apply font-mono text-xs bg-surface-2 border border-border px-1 py-0.5 rounded text-neon; }
+  .tool-prose a { @apply text-neon underline underline-offset-2 hover:text-neon/80; }
+  .tool-prose ul { @apply list-disc pl-5 text-muted text-sm mb-3 space-y-1; }
+  .tool-prose img { @apply rounded-lg border border-border my-3; }
+}

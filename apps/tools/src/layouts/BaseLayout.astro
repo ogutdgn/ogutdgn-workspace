@@ -1,0 +1,27 @@
+---
+// apps/tools/src/layouts/BaseLayout.astro
+import "../styles/global.css";
+import Navbar from "@components/Navbar.astro";
+
+interface Props { title: string; description?: string; canonical?: string; }
+const { title, description = "A collection of tools built by Dogan Ogut", canonical } = Astro.props;
+const canonicalURL = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body class="min-h-screen bg-void grid-bg noise antialiased">
+    <Navbar />
+    <main><slot /></main>
+  </body>
+</html>
