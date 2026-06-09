@@ -6,7 +6,7 @@ interface Props {
 const { spriteImage = "/mini-dogan.png" } = Astro.props;
 ---
 
-<script define:vars={{ spriteImage }}>
+<script is:inline define:vars={{ spriteImage }}>
   const isReducedMotion =
     window.matchMedia(`(prefers-reduced-motion: reduce)`) === true ||
     window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true;
