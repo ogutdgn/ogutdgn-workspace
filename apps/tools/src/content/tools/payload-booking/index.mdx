@@ -1,0 +1,122 @@
+---
+title: "Payload Booking"
+tagline: "Appointment booking for Payload CMS, where the same slot can never be sold twice."
+overview: "An npm package that adds real appointment booking to any Payload CMS project: a visitor picks a time slot, the appointment appears in the admin, both sides get email, and either side can cancel."
+category: "Developer Tools"
+hostType: "external"
+toolType: "cli-npm"
+status: "active"
+featured: true
+liveLink: "https://www.npmjs.com/package/@ogutdgn/payload-booking"
+githubLink: "https://github.com/ogutdgn/payload-booking"
+technologies: ["TypeScript", "Payload CMS 3", "React 19", "PostgreSQL", "MongoDB", "Zod", "date-fns", "Vitest", "npm"]
+tags: ["payload", "payloadcms", "payload-plugin", "booking", "appointments", "scheduling"]
+publishedAt: 2026-09-19
+---
+
+### Problem Addressed
+
+Payload CMS gives you collections, access control and an admin panel. It does not give you booking.
+
+So every time a client wants "let people schedule a visit from the website", you rebuild the same thing: opening hours, time slots, timezones, confirmation emails, cancellation links — and the one thing nobody forgives you for getting wrong, two people booking the same slot.
+
+This package is that work, done once.
+
+### What It Does
+
+- A visitor picks a real, available time slot on a public page.
+- The appointment appears in the Payload admin immediately.
+- Both sides get email, with a calendar invitation attached.
+- Either side can cancel — the customer through a signed link in their email, staff through a button in the admin.
+- The same slot can never be sold twice.
+
+Hours, timezone, capacity, notice periods and closed dates are edited by the business owner in the admin, not hardcoded.
+
+No prices, no payments, no deposits. It books time.
+
+### How It Works
+
+The plugin adds four collections and a settings global to your Payload project, and mounts eight endpoints under `/api/booking`.
+
+Availability is generated **server-side** from the business hours and closed dates, so the browser never calculates a time or decides a timezone — it receives finished labels. A submitted booking passes a guard chain (spam checks, notice period, still available) and is written with a **unique lock key** enforced by the database itself, so two people submitting in the same second get one confirmation and one honest refusal. Emails go out after the write commits, through your own Payload email adapter.
+
+Cancelling is a status change, never a delete — one code path releases the slot, writes the audit trail and sends the emails. In the admin, status is a read-only badge with Cancel, Mark completed and Mark no-show buttons, so those steps cannot be skipped.
+
+Spam protection is on by default: a honeypot field, a signed time-trap token, and caps per email and per IP. You can add a challenge provider like Cloudflare Turnstile with one option.
+
+### Usage
+
+```bash
+pnpm add @ogutdgn/payload-booking
+```
+
+Add it to your Payload config and run `payload generate:importmap`:
+
+```ts
+import { bookingPlugin } from '@ogutdgn/payload-booking'
+
+export default buildConfig({
+  plugins: [
+    bookingPlugin({
+      access: { configure: isAdmin, manage: isEditor },
+      defaults: {
+        resource: { name: 'Showroom' },
+        settings: {
+          timezone: 'America/Chicago',
+          slotDurationMinutes: 60,
+          capacityPerSlot: 1,
+          minNoticeMinutes: 120,
+          weeklySchedule: {
+            monday: { open: true, sessionStarts: ['09:00', '10:00', '11:00'] },
+            // ...the rest of the week
+          },
+        },
+      },
+      email: { from: 'Bookings <bookings@example.com>' },
+      routes: { bookPath: '/schedule', cancelPath: '/appointments/cancel' },
+      siteUrl: 'https://example.com',
+      tokenSecret: process.env.BOOKING_TOKEN_SECRET,
+    }),
+  ],
+})
+```
+
+Those values are only a starting point — they are written once, then edited in the admin.
+
+Then add two pages and render the exported components:
+
+```tsx
+import { BookingForm } from '@ogutdgn/payload-booking/react'
+
+export default function SchedulePage() {
+  return <BookingForm apiUrl="/api/booking" />
+}
+```
+
+The components are one possible shape, not the shape. Restyle them with a class-name map, or use `useBookingFlow` — it gives you the state and the actions and draws nothing, so the booking page can be a calendar grid, a wizard, or anything else. If even the hooks do not fit, the eight endpoints constrain nothing.
+
+The admin is open the same way through `overrides`. The one limit: an override that would remove a guarantee, like the unique lock key or the status guard, refuses to start.
+
+### Deliberate Scope
+
+No prices, payments or deposits, ever.
+
+Not in version 1: staff creating appointments from the admin, multi-location booking UI, reminder emails, rescheduling in place, partial-day closures and calendar sync. The data model already carries the seams for locations and appointment types, so those can be added later without a rewrite.
+
+### Requirements
+
+| Package | Range |
+| --- | --- |
+| `payload` | `^3.84.1` |
+| `@payloadcms/ui` | `^3.84.1` |
+| `react` / `react-dom` | `^19.0.0` |
+
+PostgreSQL or MongoDB through Payload's own adapters. Node 20.9 or newer.
+
+Peer dependencies rather than bundled copies, so you never end up with two versions of the Payload admin.
+
+### Links
+
+- npm — [`@ogutdgn/payload-booking`](https://www.npmjs.com/package/@ogutdgn/payload-booking)
+- GitHub — [ogutdgn/payload-booking](https://github.com/ogutdgn/payload-booking)
+- Full documentation — [README](https://github.com/ogutdgn/payload-booking#readme)

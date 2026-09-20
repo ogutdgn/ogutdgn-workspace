@@ -1,0 +1,73 @@
+---
+title: "Why I Built a Booking Plugin for Payload CMS"
+description: "A client needed appointment booking on their site. It looked like a weekend of work. It was not — and the reason why is the interesting part."
+date: 2026-09-19
+---
+
+Most of what I build is a dynamic website with a CMS behind it. Someone needs a site they can actually edit, and my job is to make that possible without them ever opening a code editor.
+
+Lately, Payload CMS has been my default for that. It gives me collections, access control, a real database, and an admin panel that feels like software rather than a form generator.
+
+Then, on one of those projects, the client asked for something Payload does not have.
+
+#### "Can people book an appointment from the website?"
+
+Reasonable question. A perfectly ordinary feature — you have seen it a hundred times: pick a day, pick a time, enter your name and email, done.
+
+I went looking for it in Payload. It is not there. Payload gives you the building blocks — a collection, an endpoint, an email adapter — but nobody has decided, on your behalf, what an appointment *is*.
+
+So my first instinct was the one I think most developers have: fine, I will just build it. A collection with a date field, a form on the frontend, an email on submit. A weekend, maybe.
+
+That estimate was wrong, and it was wrong in a specific way worth writing down.
+
+#### Booking looks small because you are only picturing the happy path
+
+When you imagine a booking feature, you imagine one person, booking one time, successfully. The actual work is everywhere else.
+
+**Two people can click at the same moment.** The obvious fix is to check whether the slot is free and then write the appointment — but that is two steps. Two requests can both run the check, both see "free", and both write. Now two strangers arrive at the same time and the business has to phone one of them and apologise. The window is milliseconds wide. It will not show up in your testing. It will show up on the day the business runs an ad.
+
+**Time is not a number.** A slot is not "2 PM". It is 2 PM *in the business's timezone*, on a specific calendar day, which may or may not exist — twice a year the clock skips an hour or repeats one. And if the browser does the calculating, a customer travelling abroad sees a different set of slots than the business is actually offering.
+
+**Cancellation has no account to hang off.** The person booking is a visitor, not a user. They never log in. So "let me cancel that" has to work from a link in their inbox, safely, without leaking their details back to whoever happens to be holding the link.
+
+And underneath all of it: opening hours, holidays, capacity, notice periods, how far ahead people may book. Every one of those is something the owner will want to change later, by themselves, without calling me.
+
+None of these are hard problems individually. Together they are a week, not a weekend — and they are *the same* week on the next project.
+
+#### The decision: build it once, as a plugin
+
+That last part is what settled it.
+
+If I wrote this inside one client's repository, I would write it again for the next client. Slightly differently, with slightly different bugs. And the careful thinking would sit in a repo nobody else can see.
+
+A plugin is a different commitment. It has to work with hours I have not imagined, timezones I do not live in, and a design system I did not choose. That constraint is annoying for about a day, and then it makes everything better — because it forces every host-specific decision out of the code and into configuration, where it belonged anyway.
+
+So I gave myself one rule that everything else had to follow.
+
+#### The rule: let the database say no
+
+Not my code. The database.
+
+Every appointment that holds a slot stores a key built from the location, the exact start time and a seat number — and that column is unique. Not *checked* for uniqueness. Unique, declared, enforced by the database engine.
+
+Two people submitting the same slot in the same second now get one confirmation and one honest "someone just took that time". The second write is refused before it exists. There is no check to lose a race against, because there is no check.
+
+That one decision shaped everything after it. Cancelling could no longer be a delete, because deleting the row throws away the audit trail — so it became a status change that releases the seat and sends the emails through a single code path. Status could no longer be a field someone edits by hand in the admin, because then a slot could be freed without anyone being told — so it became a read-only badge with buttons that call endpoints.
+
+Neither of those was a preference. They both simply followed. That is usually the sign the first rule was a good one.
+
+#### What it turned into
+
+It is published now, as `@ogutdgn/payload-booking`.
+
+A visitor picks a real slot on the site, the appointment lands in the Payload admin, both sides get an email with a calendar invitation, and either side can cancel. Hours, timezone, capacity, notice periods and closed dates are all edited by the owner in the admin.
+
+It deliberately does not do payments. It books time. Adding money would have doubled the surface area and halved the number of things I could claim actually work.
+
+The part I am most pleased with is not a feature. It is that the booking form is optional — there is a hook underneath it that hands you the state and the actions and draws nothing at all. The next project can have a completely different calendar, or a wizard, or anything else, and still get the parts that are hard to get right.
+
+That was the real goal. Not "here is my booking form". Here is the difficult part, solved once — build whatever you want on top of it.
+
+---
+
+The plugin is [on npm](https://www.npmjs.com/package/@ogutdgn/payload-booking) and the source is [on GitHub](https://github.com/ogutdgn/payload-booking). MIT licensed — take it, use it, open an issue if it breaks.
